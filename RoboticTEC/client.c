@@ -3,10 +3,11 @@
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <sys/stat.h>
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 8192
 #define PUERTO_SERVIDOR 8080
-#define CLAVE_CIFRADO 3  // Desplazamiento para cifrado César
+#define CLAVE_CIFRADO 3
 
 void cifrar_archivo(const char *archivo_entrada, const char *archivo_salida) {
     FILE *fin = fopen(archivo_entrada, "r");
@@ -29,14 +30,48 @@ void cifrar_archivo(const char *archivo_entrada, const char *archivo_salida) {
     fclose(fout);
 }
 
+// Función para enviar todos los bytes (maneja envíos parciales)
+ssize_t enviar_todo(int socket, const void *buffer, size_t length) {
+    size_t total_enviado = 0;
+    ssize_t bytes_enviados;
+    const char *ptr = (const char *)buffer;
+
+    while (total_enviado < length) {
+        bytes_enviados = send(socket, ptr + total_enviado, length - total_enviado, 0);
+        if (bytes_enviados <= 0) {
+            if (bytes_enviados < 0) {
+                perror("Error en send");
+            }
+            return -1;
+        }
+        total_enviado += bytes_enviados;
+    }
+    return total_enviado;
+}
+
+long obtener_tamaño_archivo(const char *archivo) {
+    struct stat st;
+    if (stat(archivo, &st) == 0) {
+        return st.st_size;
+    }
+    return -1;
+}
+
 void enviar_archivo(const char *archivo_cifrado, const char *ip_servidor) {
     int sockfd;
     struct sockaddr_in servidor;
     char buffer[BUFFER_SIZE];
-    FILE *archivo = fopen(archivo_cifrado, "r");
+    FILE *archivo = fopen(archivo_cifrado, "rb"); // Modo binario para mayor precisión
 
     if (!archivo) {
         perror("Error abriendo archivo cifrado");
+        exit(EXIT_FAILURE);
+    }
+
+    // Obtener tamaño del archivo
+    long tamaño_archivo = obtener_tamaño_archivo(archivo_cifrado);
+    if (tamaño_archivo < 0) {
+        perror("Error obteniendo tamaño del archivo");
         exit(EXIT_FAILURE);
     }
 
@@ -45,6 +80,12 @@ void enviar_archivo(const char *archivo_cifrado, const char *ip_servidor) {
         perror("Error creando socket");
         exit(EXIT_FAILURE);
     }
+
+    // Configurar timeout para el socket
+    struct timeval timeout;
+    timeout.tv_sec = 30;  // 30 segundos
+    timeout.tv_usec = 0;
+    setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
 
     servidor.sin_family = AF_INET;
     servidor.sin_port = htons(PUERTO_SERVIDOR);
@@ -55,11 +96,38 @@ void enviar_archivo(const char *archivo_cifrado, const char *ip_servidor) {
         exit(EXIT_FAILURE);
     }
 
-    while (fgets(buffer, BUFFER_SIZE, archivo)) {
-        send(sockfd, buffer, strlen(buffer), 0);
+    // PASO 1: Enviar el tamaño del archivo primero
+    printf("Enviando tamaño del archivo: %ld bytes\n", tamaño_archivo);
+    if (enviar_todo(sockfd, &tamaño_archivo, sizeof(tamaño_archivo)) < 0) {
+        perror("Error enviando tamaño del archivo");
+        exit(EXIT_FAILURE);
     }
 
-    printf("Archivo cifrado enviado correctamente.\n");
+    // PASO 2: Enviar el contenido del archivo
+    size_t bytes_leidos;
+    long total_enviado = 0;
+    
+    printf("Enviando archivo...\n");
+    while ((bytes_leidos = fread(buffer, 1, BUFFER_SIZE, archivo)) > 0) {
+        if (enviar_todo(sockfd, buffer, bytes_leidos) < 0) {
+            perror("Error enviando datos del archivo");
+            exit(EXIT_FAILURE);
+        }
+        total_enviado += bytes_leidos;
+        
+        // Mostrar progreso
+        printf("Progreso: %ld/%ld bytes (%.1f%%)\r", 
+               total_enviado, tamaño_archivo, 
+               (float)total_enviado / tamaño_archivo * 100);
+        fflush(stdout);
+    }
+
+    printf("\nArchivo enviado completamente: %ld bytes\n", total_enviado);
+    
+    // PASO 3: Enviar señal de fin (opcional, pero útil)
+    const char *fin_transmision = "EOF_MARKER";
+    enviar_todo(sockfd, fin_transmision, strlen(fin_transmision));
+
     fclose(archivo);
     close(sockfd);
 }
@@ -74,7 +142,10 @@ int main(int argc, char *argv[]) {
     const char *archivo_salida = "archivo_cifrado.txt";
     const char *ip_servidor = argv[2];
 
+    printf("Cifrando archivo: %s\n", archivo_entrada);
     cifrar_archivo(archivo_entrada, archivo_salida);
+    
+    printf("Enviando al servidor: %s\n", ip_servidor);
     enviar_archivo(archivo_salida, ip_servidor);
 
     return 0;
