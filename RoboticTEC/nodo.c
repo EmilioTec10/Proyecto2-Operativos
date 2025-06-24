@@ -9,14 +9,14 @@
 #define MAX_TEXTO 100000
 #define OVERLAP 16  // margen extra para evitar cortar palabras
 
-// Descifra un carácter (algoritmo César inverso)
+// Descifra un caracter (algoritmo Cesar inverso)
 char descifrar_char(char c) {
     if (c >= 32 && c <= 126)
         return ((c - 32 - CLAVE_CIFRADO + 95) % 95) + 32;
     return c;
 }
 
-// Normaliza una palabra (convierte a minúscula)
+// Normaliza una palabra (convierte a minuscula)
 void normalizar(char *palabra) {
     for (int i = 0; palabra[i]; ++i)
         palabra[i] = tolower(palabra[i]);
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
         fclose(f);
     }
 
-    // Difundir tamaño del texto
+    // Difundir tamano del texto
     MPI_Bcast(&tam_texto, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     // Difundir el texto completo
@@ -105,17 +105,17 @@ int main(int argc, char *argv[]) {
         strcat(buffer_envio, linea);
     }
 
-    // Enviar tamaño del buffer
+    // Enviar tamano del buffer
     int tam_envio = strlen(buffer_envio) + 1;
-    int *tamanios = NULL;
-    if (rank == 0) tamanios = malloc(size * sizeof(int));
-    MPI_Gather(&tam_envio, 1, MPI_INT, tamanios, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    int *tamanos = NULL;
+    if (rank == 0) tamanos = malloc(size * sizeof(int));
+    MPI_Gather(&tam_envio, 1, MPI_INT, tamanos, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     // Enviar conteos serializados al root
     char *recibidos = NULL;
     if (rank == 0) {
         int total = 0;
-        for (int i = 0; i < size; ++i) total += tamanios[i];
+        for (int i = 0; i < size; ++i) total += tamanos[i];
         recibidos = malloc(total);
     }
 
@@ -149,7 +149,7 @@ int main(int argc, char *argv[]) {
             linea = strtok(NULL, "\n");
         }
 
-        // Encontrar la más frecuente
+        // Encontrar la mas frecuente
         int max = 0;
         char palabra_max[MAX_PALABRA];
         for (int i = 0; i < n_final; ++i) {
@@ -170,7 +170,7 @@ int main(int argc, char *argv[]) {
         }
 
         free(recibidos);
-        free(tamanios);
+        free(tamanos);
     }
 
     free(bloque_local);
