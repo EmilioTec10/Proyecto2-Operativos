@@ -1,4 +1,4 @@
-# Makefile para el proyecto RoboticTEC
+# Makefile para el proyecto RoboticTEC - VERSION CORREGIDA
 CC = gcc
 MPICC = mpicc
 CFLAGS = -Wall -Wextra -g -O2
@@ -100,7 +100,7 @@ distclean: clean
 	@rm -rf archivos
 	@echo "Limpieza completa realizada."
 
-# Probar compilación y dependencias
+# Verificar dependencias
 test-deps:
 	@echo "Verificando dependencias..."
 	@which gcc > /dev/null || (echo "ERROR: gcc no encontrado" && exit 1)
@@ -108,21 +108,20 @@ test-deps:
 	@which mpirun > /dev/null || (echo "ERROR: mpirun no encontrado. Instalar OpenMPI" && exit 1)
 	@echo "Todas las dependencias están disponibles."
 
-# Ejecutar una prueba completa del sistema
-test-system: all install
-	@echo "=== EJECUTANDO PRUEBA DEL SISTEMA ==="
+# Prueba rápida del sistema
+test-quick: install
+	@echo "=== PRUEBA RÁPIDA DEL SISTEMA ==="
 	@echo "Creando archivo de prueba..."
-	@echo "Esta es una prueba del sistema. Esta palabra se repite varias veces. Sistema sistema sistema prueba." > test_input.txt
-	@echo "Iniciando servidor en segundo plano..."
-	@./server &
-	@SERVER_PID=$$!; \
-	sleep 2; \
-	echo "Enviando archivo de prueba..."; \
-	./client test_input.txt 127.0.0.1; \
-	sleep 1; \
-	kill $$SERVER_PID 2>/dev/null || true; \
-	echo "Prueba completada."
-	@rm -f test_input.txt archivo_cifrado.txt
+	@echo "esta es una prueba prueba del sistema sistema sistema" > test.txt
+	@echo "Iniciando servidor en background..."
+	@timeout 10 ./server &
+	@sleep 1
+	@echo "Enviando archivo..."
+	@timeout 5 ./client test.txt 127.0.0.1 || true
+	@sleep 1
+	@killall server 2>/dev/null || true
+	@rm -f test.txt archivo_cifrado.txt
+	@echo "Prueba rápida completada."
 
 # Mostrar ayuda
 help:
@@ -134,17 +133,7 @@ help:
 	@echo "  clean      - Limpiar archivos generados"
 	@echo "  distclean  - Limpieza completa"
 	@echo "  test-deps  - Verificar dependencias"
-	@echo "  test-system- Ejecutar prueba del sistema"
+	@echo "  test-quick - Ejecutar prueba del sistema"
 	@echo "  help       - Mostrar esta ayuda"
-	@echo ""
-	@echo "Dependencias requeridas:"
-	@echo "  - gcc (compilador C)"
-	@echo "  - mpicc/mpirun (OpenMPI)"
-	@echo ""
-	@echo "Uso típico:"
-	@echo "  make test-deps    # Verificar dependencias"
-	@echo "  make install      # Compilar e instalar"
-	@echo "  ./server          # Ejecutar servidor"
-	@echo "  ./client archivo.txt 127.0.0.1  # Enviar archivo"
 
-.PHONY: all directories install clean distclean test-deps test-system help
+.PHONY: all directories install clean distclean test-deps test-quick help
