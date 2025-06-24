@@ -4,56 +4,194 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
+#include <errno.h>
 #include "biblioteca.h"
 
 #define PUERTO_SERVIDOR 8080
 #define ARCHIVO_CIFRADO "archivos/archivo_cifrado.txt"
 #define ARCHIVO_DESCIFRADO "archivos/archivo_descifrado.txt"
-#define BUFFER_SIZE 1024*2*2*2
+#define BUFFER_SIZE 8192
+
+// Función para recibir todos los bytes (maneja recepciones parciales)
+ssize_t recibir_todo(int socket, void *buffer, size_t length) {
+    size_t total_recibido = 0;
+    ssize_t bytes_recibidos;
+    char *ptr = (char *)buffer;
+
+    while (total_recibido < length) {
+        bytes_recibidos = recv(socket, ptr + total_recibido, length - total_recibido, 0);
+        if (bytes_recibidos <= 0) {
+            if (bytes_recibidos < 0) {
+                perror("Error en recv");
+            } else {
+                printf("Conexión cerrada por el cliente\n");
+            }
+            return -1;
+        }
+        total_recibido += bytes_recibidos;
+    }
+    return total_recibido;
+}
+
+void crear_directorio_si_no_existe() {
+    struct stat st = {0};
+    if (stat("archivos", &st) == -1) {
+        if (mkdir("archivos", 0700) == -1) {
+            perror("Error creando directorio 'archivos'");
+            exit(EXIT_FAILURE);
+        }
+        printf("Directorio 'archivos' creado.\n");
+    }
+}
 
 void guardar_archivo(int socket_cliente) {
-    FILE *archivo = fopen(ARCHIVO_CIFRADO, "w");
+    crear_directorio_si_no_existe();
+    
+    // PASO 1: Recibir el tamaño del archivo
+    long tamaño_archivo;
+    if (recibir_todo(socket_cliente, &tamaño_archivo, sizeof(tamaño_archivo)) < 0) {
+        fprintf(stderr, "Error recibiendo tamaño del archivo\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    printf("Tamaño del archivo a recibir: %ld bytes\n", tamaño_archivo);
+    
+    if (tamaño_archivo <= 0 || tamaño_archivo > 100*1024*1024) { // Límite de 100MB
+        fprintf(stderr, "Tamaño de archivo inválido: %ld\n", tamaño_archivo);
+        exit(EXIT_FAILURE);
+    }
+
+    // PASO 2: Crear archivo de salida
+    FILE *archivo = fopen(ARCHIVO_CIFRADO, "wb"); // Modo binario
     if (!archivo) {
         perror("No se pudo crear archivo de salida");
         exit(EXIT_FAILURE);
     }
 
+    // PASO 3: Recibir el contenido del archivo
     char buffer[BUFFER_SIZE];
-    ssize_t bytes;
+    long total_recibido = 0;
+    ssize_t bytes_recibidos;
 
-    while ((bytes = recv(socket_cliente, buffer, BUFFER_SIZE, 0)) > 0) {
-        fwrite(buffer, 1, bytes, archivo);
+    printf("Recibiendo archivo...\n");
+    
+    while (total_recibido < tamaño_archivo) {
+        // Calcular cuántos bytes recibir en esta iteración
+        size_t bytes_a_recibir = BUFFER_SIZE;
+        if (total_recibido + BUFFER_SIZE > tamaño_archivo) {
+            bytes_a_recibir = tamaño_archivo - total_recibido;
+        }
+
+        bytes_recibidos = recv(socket_cliente, buffer, bytes_a_recibir, 0);
+        if (bytes_recibidos <= 0) {
+            if (bytes_recibidos < 0) {
+                perror("Error recibiendo datos");
+            } else {
+                printf("Conexión cerrada prematuramente por el cliente\n");
+            }
+            fclose(archivo);
+            exit(EXIT_FAILURE);
+        }
+
+        // Escribir al archivo
+        if (fwrite(buffer, 1, bytes_recibidos, archivo) != bytes_recibidos) {
+            perror("Error escribiendo al archivo");
+            fclose(archivo);
+            exit(EXIT_FAILURE);
+        }
+
+        total_recibido += bytes_recibidos;
+        
+        // Mostrar progreso
+        printf("Progreso: %ld/%ld bytes (%.1f%%)\r", 
+               total_recibido, tamaño_archivo, 
+               (float)total_recibido / tamaño_archivo * 100);
+        fflush(stdout);
     }
 
     fclose(archivo);
-    printf("Archivo recibido correctamente.\n");
+    printf("\nArchivo recibido completamente: %ld bytes\n", total_recibido);
+    
+    // PASO 4: Intentar recibir marcador de fin (opcional)
+    char marcador_fin[20];
+    bytes_recibidos = recv(socket_cliente, marcador_fin, sizeof(marcador_fin)-1, MSG_DONTWAIT);
+    if (bytes_recibidos > 0) {
+        marcador_fin[bytes_recibidos] = '\0';
+        printf("Marcador de fin recibido: %s\n", marcador_fin);
+    }
+
+    // Verificar integridad del archivo
+    struct stat st;
+    if (stat(ARCHIVO_CIFRADO, &st) == 0) {
+        printf("Verificación: archivo guardado con %ld bytes\n", st.st_size);
+        if (st.st_size != tamaño_archivo) {
+            fprintf(stderr, "ADVERTENCIA: Tamaño del archivo no coincide!\n");
+        }
+    }
 }
 
 void ejecutar_mpi() {
     printf("Ejecutando procesamiento distribuido con MPI...\n");
-    int status = system("mpirun -np 3 ./nodo");
-    if (status != 0) {
-        fprintf(stderr, "Error ejecutando nodos MPI.\n");
+    
+    // Verificar que el archivo existe antes de ejecutar MPI
+    if (access(ARCHIVO_CIFRADO, F_OK) != 0) {
+        fprintf(stderr, "Error: El archivo cifrado no existe.\n");
         exit(EXIT_FAILURE);
     }
+    
+    // Cambiar al directorio donde está el archivo antes de ejecutar MPI
+    if (chdir("archivos") != 0) {
+        // Si no se puede cambiar al directorio, copiar el archivo
+        system("cp archivos/archivo_cifrado.txt .");
+    }
+    
+    int status = system("mpirun -np 3 ../nodo");
+    if (status != 0) {
+        fprintf(stderr, "Error ejecutando nodos MPI (código: %d).\n", status);
+        exit(EXIT_FAILURE);
+    }
+    
+    // Volver al directorio original si se cambió
+    chdir("..");
 }
 
 void escribir_resultado() {
     FILE *f = fopen(ARCHIVO_DESCIFRADO, "r");
     if (!f) {
-        perror("No se pudo abrir el archivo descifrado");
-        return;
+        // Intentar en el directorio actual también
+        f = fopen("archivo_descifrado.txt", "r");
+        if (!f) {
+            perror("No se pudo abrir el archivo descifrado");
+            return;
+        }
     }
 
     char palabra[100];
     int cantidad;
 
-    fscanf(f, "%s %d", palabra, &cantidad);
+    if (fscanf(f, "%s %d", palabra, &cantidad) != 2) {
+        fprintf(stderr, "Error leyendo el resultado del archivo descifrado\n");
+        fclose(f);
+        return;
+    }
     fclose(f);
 
-    // Simulación de biblioteca de control de hardware
-    printf("Palabra más repetida: %s (%d veces)\n", palabra, cantidad);
-    // llamar_biblioteca_escribir(palabra, cantidad); ← función real a implementar
+    printf("=== RESULTADO FINAL ===\n");
+    printf("Palabra más repetida: '%s' (%d veces)\n", palabra, cantidad);
+    printf("======================\n");
+    
+    // Aquí integrarías con la biblioteca del hardware
+    /*
+    if (inicializar_mano("/dev/ttyUSB0") == 0) {
+        printf("Escribiendo resultado con el hardware...\n");
+        // Implementar lógica para escribir la palabra con el robot
+        escribir_palabra_con_robot(palabra);
+        cerrar_mano();
+    } else {
+        printf("No se pudo inicializar el hardware, mostrando solo resultado.\n");
+    }
+    */
 }
 
 int main() {
@@ -67,6 +205,19 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
+    // Permitir reutilizar la dirección
+    int opt = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+        perror("Error en setsockopt");
+        exit(EXIT_FAILURE);
+    }
+
+    // Configurar timeout para recepción
+    struct timeval timeout;
+    timeout.tv_sec = 60;  // 60 segundos
+    timeout.tv_usec = 0;
+    setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+
     servidor.sin_family = AF_INET;
     servidor.sin_port = htons(PUERTO_SERVIDOR);
     servidor.sin_addr.s_addr = INADDR_ANY;
@@ -77,7 +228,7 @@ int main() {
     }
 
     listen(sockfd, 1);
-    printf("Servidor esperando conexión...\n");
+    printf("Servidor esperando conexión en puerto %d...\n", PUERTO_SERVIDOR);
 
     socket_cliente = accept(sockfd, (struct sockaddr *)&cliente, &cliente_len);
     if (socket_cliente < 0) {
@@ -85,18 +236,16 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    printf("Cliente conectado. Recibiendo archivo...\n");
+    printf("Cliente conectado desde %s\n", inet_ntoa(cliente.sin_addr));
+    printf("Iniciando recepción del archivo...\n");
+    
     guardar_archivo(socket_cliente);
     close(socket_cliente);
     close(sockfd);
 
+    printf("Iniciando procesamiento...\n");
     ejecutar_mpi();
     escribir_resultado();
-
-    //inicializar_mano("/dev/ttyUSB0");
-    //mover_derecha();
-    //bajar_dedo();
-    //cerrar_mano();
 
     return 0;
 }
