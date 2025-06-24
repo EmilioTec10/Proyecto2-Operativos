@@ -9,7 +9,7 @@
 #define PUERTO_SERVIDOR 8080
 #define ARCHIVO_CIFRADO "archivos/archivo_cifrado.txt"
 #define ARCHIVO_DESCIFRADO "archivos/archivo_descifrado.txt"
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 1024*2*2*2
 
 void guardar_archivo(int socket_cliente) {
     FILE *archivo = fopen(ARCHIVO_CIFRADO, "w");
@@ -93,10 +93,10 @@ int main() {
     ejecutar_mpi();
     escribir_resultado();
 
-    inicializar_mano("/dev/ttyUSB0");
-    mover_derecha();
-    bajar_dedo();
-    cerrar_mano();
+    //inicializar_mano("/dev/ttyUSB0");
+    //mover_derecha();
+    //bajar_dedo();
+    //cerrar_mano();
 
     return 0;
 }
