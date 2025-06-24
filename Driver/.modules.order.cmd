@@ -1,1 +1,1 @@
-savedcmd_/home/henry/CLionProjects/Proyecto2-Operativos/Driver/modules.order := {   echo /home/henry/CLionProjects/Proyecto2-Operativos/Driver/robomano_driver.o; :; } > /home/henry/CLionProjects/Proyecto2-Operativos/Driver/modules.order
+cmd_/home/nics/Desktop/Operativos/Proyecto2-Operativos/Driver/modules.order := {   echo /home/nics/Desktop/Operativos/Proyecto2-Operativos/Driver/robomano_driver.ko; :; } | awk '!x[$$0]++' - > /home/nics/Desktop/Operativos/Proyecto2-Operativos/Driver/modules.order

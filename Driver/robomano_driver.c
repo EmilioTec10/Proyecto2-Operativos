@@ -15,7 +15,7 @@
 
 #define DEVICE_NAME  "robomano"
 #define CLASS_NAME   "robomano_class"
-#define SERIAL_PORT  "/dev/ttyUSB0"
+#define SERIAL_PORT  "/dev/ttyACM0"
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Henry & equipo");
@@ -85,7 +85,8 @@ static int __init robomano_init(void)
     }
 
     /* 2. crear clase y /dev/robomano */
-    robomano_class = class_create(CLASS_NAME);
+    robomano_class = class_create(THIS_MODULE, CLASS_NAME);
+	
     if (IS_ERR(robomano_class)) {
         unregister_chrdev(major, DEVICE_NAME);
         pr_alert("robomano: no pude crear la clase\n");

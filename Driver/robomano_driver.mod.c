@@ -2,14 +2,8 @@
 #define INCLUDE_VERMAGIC
 #include <linux/build-salt.h>
 #include <linux/elfnote-lto.h>
-#include <linux/export-internal.h>
 #include <linux/vermagic.h>
 #include <linux/compiler.h>
-
-#ifdef CONFIG_UNWINDER_ORC
-#include <asm/orc_header.h>
-ORC_HEADER;
-#endif
 
 BUILD_SALT;
 BUILD_LTO_INFO;
@@ -27,53 +21,33 @@ __section(".gnu.linkonce.this_module") = {
 	.arch = MODULE_ARCH_INIT,
 };
 
-#ifdef CONFIG_MITIGATION_RETPOLINE
+#ifdef CONFIG_RETPOLINE
 MODULE_INFO(retpoline, "Y");
 #endif
 
-
-
-static const char ____versions[]
-__used __section("__versions") =
-	"\x10\x00\x00\x00\x7e\x3a\x2c\x12"
-	"_printk\0"
-	"\x14\x00\x00\x00\x1c\x64\x4a\x95"
-	"filp_open\0\0\0"
-	"\x18\x00\x00\x00\x62\xf3\x3e\xe8"
-	"kernel_write\0\0\0\0"
-	"\x14\x00\x00\x00\xfb\xd8\x7c\xfe"
-	"filp_close\0\0"
-	"\x1c\x00\x00\x00\xca\x39\x82\x5b"
-	"__x86_return_thunk\0\0"
-	"\x28\x00\x00\x00\xb3\x1c\xa2\x87"
-	"__ubsan_handle_out_of_bounds\0\0\0\0"
-	"\x1c\x00\x00\x00\xcb\xf6\xfd\xf0"
-	"__stack_chk_fail\0\0\0\0"
-	"\x1c\x00\x00\x00\x7a\xb0\x74\xce"
-	"__register_chrdev\0\0\0"
-	"\x18\x00\x00\x00\x28\xb0\x32\x80"
-	"class_create\0\0\0\0"
-	"\x18\x00\x00\x00\x65\xfe\x0f\x5b"
-	"device_create\0\0\0"
-	"\x1c\x00\x00\x00\xc0\xfb\xc3\x6b"
-	"__unregister_chrdev\0"
-	"\x18\x00\x00\x00\x8f\xc9\x3e\x5a"
-	"class_destroy\0\0\0"
-	"\x18\x00\x00\x00\xad\x2f\xcf\x4b"
-	"device_destroy\0\0"
-	"\x1c\x00\x00\x00\xe4\xd2\x5d\xa1"
-	"class_unregister\0\0\0\0"
-	"\x14\x00\x00\x00\xbb\x6d\xfb\xbd"
-	"__fentry__\0\0"
-	"\x1c\x00\x00\x00\x48\x9f\xdb\x88"
-	"__check_object_size\0"
-	"\x18\x00\x00\x00\xc2\x9c\xc4\x13"
-	"_copy_from_user\0"
-	"\x18\x00\x00\x00\x34\x61\x23\x68"
-	"module_layout\0\0\0"
-	"\x00\x00\x00\x00\x00\x00\x00\x00";
+static const struct modversion_info ____versions[]
+__used __section("__versions") = {
+	{ 0x2c635209, "module_layout" },
+	{ 0xcfe1e2f9, "class_unregister" },
+	{ 0xdff7669f, "device_destroy" },
+	{ 0x3ee2b36d, "class_destroy" },
+	{ 0xcf2a881c, "device_create" },
+	{ 0x6bc3fbc0, "__unregister_chrdev" },
+	{ 0x9b0fb107, "__class_create" },
+	{ 0x8120e312, "__register_chrdev" },
+	{ 0x87a21cb3, "__ubsan_handle_out_of_bounds" },
+	{ 0xd0da656b, "__stack_chk_fail" },
+	{ 0xf8c7264e, "filp_close" },
+	{ 0xf435dd31, "kernel_write" },
+	{ 0x98303217, "filp_open" },
+	{ 0x92997ed8, "_printk" },
+	{ 0x5b8239ca, "__x86_return_thunk" },
+	{ 0x13c49cc2, "_copy_from_user" },
+	{ 0x88db9f48, "__check_object_size" },
+	{ 0xbdfb6dbb, "__fentry__" },
+};
 
 MODULE_INFO(depends, "");
 
 
-MODULE_INFO(srcversion, "D8B07FC48A0EEC3FCD7C2D3");
+MODULE_INFO(srcversion, "D1131407F9A238442AB8A18");
