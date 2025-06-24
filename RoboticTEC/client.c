@@ -30,7 +30,7 @@ void cifrar_archivo(const char *archivo_entrada, const char *archivo_salida) {
     fclose(fout);
 }
 
-// Función para enviar todos los bytes (maneja envíos parciales)
+// Funcion para enviar todos los bytes (maneja envios parciales)
 ssize_t enviar_todo(int socket, const void *buffer, size_t length) {
     size_t total_enviado = 0;
     ssize_t bytes_enviados;
@@ -49,7 +49,7 @@ ssize_t enviar_todo(int socket, const void *buffer, size_t length) {
     return total_enviado;
 }
 
-long obtener_tamaño_archivo(const char *archivo) {
+long obtener_tamano_archivo(const char *archivo) {
     struct stat st;
     if (stat(archivo, &st) == 0) {
         return st.st_size;
@@ -61,17 +61,17 @@ void enviar_archivo(const char *archivo_cifrado, const char *ip_servidor) {
     int sockfd;
     struct sockaddr_in servidor;
     char buffer[BUFFER_SIZE];
-    FILE *archivo = fopen(archivo_cifrado, "rb"); // Modo binario para mayor precisión
+    FILE *archivo = fopen(archivo_cifrado, "rb"); // Modo binario para mayor precision
 
     if (!archivo) {
         perror("Error abriendo archivo cifrado");
         exit(EXIT_FAILURE);
     }
 
-    // Obtener tamaño del archivo
-    long tamaño_archivo = obtener_tamaño_archivo(archivo_cifrado);
-    if (tamaño_archivo < 0) {
-        perror("Error obteniendo tamaño del archivo");
+    // Obtener tamano del archivo
+    long tamano_archivo = obtener_tamano_archivo(archivo_cifrado);
+    if (tamano_archivo < 0) {
+        perror("Error obteniendo tamano del archivo");
         exit(EXIT_FAILURE);
     }
 
@@ -96,10 +96,10 @@ void enviar_archivo(const char *archivo_cifrado, const char *ip_servidor) {
         exit(EXIT_FAILURE);
     }
 
-    // PASO 1: Enviar el tamaño del archivo primero
-    printf("Enviando tamaño del archivo: %ld bytes\n", tamaño_archivo);
-    if (enviar_todo(sockfd, &tamaño_archivo, sizeof(tamaño_archivo)) < 0) {
-        perror("Error enviando tamaño del archivo");
+    // PASO 1: Enviar el tamano del archivo primero
+    printf("Enviando tamano del archivo: %ld bytes\n", tamano_archivo);
+    if (enviar_todo(sockfd, &tamano_archivo, sizeof(tamano_archivo)) < 0) {
+        perror("Error enviando tamano del archivo");
         exit(EXIT_FAILURE);
     }
 
@@ -117,14 +117,14 @@ void enviar_archivo(const char *archivo_cifrado, const char *ip_servidor) {
         
         // Mostrar progreso
         printf("Progreso: %ld/%ld bytes (%.1f%%)\r", 
-               total_enviado, tamaño_archivo, 
-               (float)total_enviado / tamaño_archivo * 100);
+               total_enviado, tamano_archivo, 
+               (float)total_enviado / tamano_archivo * 100);
         fflush(stdout);
     }
 
     printf("\nArchivo enviado completamente: %ld bytes\n", total_enviado);
     
-    // PASO 3: Enviar señal de fin (opcional, pero útil)
+    // PASO 3: Enviar senal de fin (opcional, pero util)
     const char *fin_transmision = "EOF_MARKER";
     enviar_todo(sockfd, fin_transmision, strlen(fin_transmision));
 
