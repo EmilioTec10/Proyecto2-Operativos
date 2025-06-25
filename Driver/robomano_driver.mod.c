@@ -27,53 +27,35 @@ __section(".gnu.linkonce.this_module") = {
 	.arch = MODULE_ARCH_INIT,
 };
 
-#ifdef CONFIG_MITIGATION_RETPOLINE
+#ifdef CONFIG_RETPOLINE
 MODULE_INFO(retpoline, "Y");
 #endif
 
 
 
-static const char ____versions[]
-__used __section("__versions") =
-	"\x10\x00\x00\x00\x7e\x3a\x2c\x12"
-	"_printk\0"
-	"\x14\x00\x00\x00\x1c\x64\x4a\x95"
-	"filp_open\0\0\0"
-	"\x18\x00\x00\x00\x62\xf3\x3e\xe8"
-	"kernel_write\0\0\0\0"
-	"\x14\x00\x00\x00\xfb\xd8\x7c\xfe"
-	"filp_close\0\0"
-	"\x1c\x00\x00\x00\xca\x39\x82\x5b"
-	"__x86_return_thunk\0\0"
-	"\x28\x00\x00\x00\xb3\x1c\xa2\x87"
-	"__ubsan_handle_out_of_bounds\0\0\0\0"
-	"\x1c\x00\x00\x00\xcb\xf6\xfd\xf0"
-	"__stack_chk_fail\0\0\0\0"
-	"\x1c\x00\x00\x00\x7a\xb0\x74\xce"
-	"__register_chrdev\0\0\0"
-	"\x18\x00\x00\x00\x28\xb0\x32\x80"
-	"class_create\0\0\0\0"
-	"\x18\x00\x00\x00\x65\xfe\x0f\x5b"
-	"device_create\0\0\0"
-	"\x1c\x00\x00\x00\xc0\xfb\xc3\x6b"
-	"__unregister_chrdev\0"
-	"\x18\x00\x00\x00\x8f\xc9\x3e\x5a"
-	"class_destroy\0\0\0"
-	"\x18\x00\x00\x00\xad\x2f\xcf\x4b"
-	"device_destroy\0\0"
-	"\x1c\x00\x00\x00\xe4\xd2\x5d\xa1"
-	"class_unregister\0\0\0\0"
-	"\x14\x00\x00\x00\xbb\x6d\xfb\xbd"
-	"__fentry__\0\0"
-	"\x1c\x00\x00\x00\x48\x9f\xdb\x88"
-	"__check_object_size\0"
-	"\x18\x00\x00\x00\xc2\x9c\xc4\x13"
-	"_copy_from_user\0"
-	"\x18\x00\x00\x00\x34\x61\x23\x68"
-	"module_layout\0\0\0"
-	"\x00\x00\x00\x00\x00\x00\x00\x00";
+static const struct modversion_info ____versions[]
+__used __section("__versions") = {
+	{ 0xf641a686, "device_create" },
+	{ 0x122c3a7e, "_printk" },
+	{ 0x5b8239ca, "__x86_return_thunk" },
+	{ 0x6bc3fbc0, "__unregister_chrdev" },
+	{ 0xfa5cdaeb, "class_destroy" },
+	{ 0xc21bdf9, "device_destroy" },
+	{ 0xc9484e52, "class_unregister" },
+	{ 0x88db9f48, "__check_object_size" },
+	{ 0x13c49cc2, "_copy_from_user" },
+	{ 0xecb37206, "filp_open" },
+	{ 0xda9f3b5, "kernel_write" },
+	{ 0xb41688c, "filp_close" },
+	{ 0x87a21cb3, "__ubsan_handle_out_of_bounds" },
+	{ 0xf0fdf6cb, "__stack_chk_fail" },
+	{ 0xbdfb6dbb, "__fentry__" },
+	{ 0x2f920aea, "__register_chrdev" },
+	{ 0x33c47e0e, "class_create" },
+	{ 0xb2b23fc2, "module_layout" },
+};
 
 MODULE_INFO(depends, "");
 
 
-MODULE_INFO(srcversion, "D8B07FC48A0EEC3FCD7C2D3");
+MODULE_INFO(srcversion, "986BA3D1B53263A03B84731");

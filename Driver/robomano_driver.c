@@ -15,7 +15,7 @@
 
 #define DEVICE_NAME  "robomano"
 #define CLASS_NAME   "robomano_class"
-#define SERIAL_PORT  "/dev/ttyUSB0"
+#define SERIAL_PORT  "/dev/ttyACM0"
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Henry & equipo");
