@@ -1,0 +1,5 @@
+*.o
+Driver/.ko
+Driver/.mod.
+Driver/.order
+Driver/..cmd

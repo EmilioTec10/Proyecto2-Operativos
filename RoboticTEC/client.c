@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/stat.h>
+#include <sys/time.h>
+
 
 #define BUFFER_SIZE 8192
 #define PUERTO_SERVIDOR 8080

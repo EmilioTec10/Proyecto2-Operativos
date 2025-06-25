@@ -150,7 +150,7 @@ void ejecutar_mpi() {
         }
     }
 
-    int status = system("mpirun -np 3 ../nodo");
+    int status = system("mpirun --allow-run-as-root -np 3 ../nodo");
     if (status != 0) {
         fprintf(stderr, "Error ejecutando nodos MPI (codigo: %d).\n", status);
         exit(EXIT_FAILURE);

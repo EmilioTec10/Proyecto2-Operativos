@@ -1,1 +1,1 @@
-cmd_/home/nics/Desktop/Operativos/Proyecto2-Operativos/Driver/Module.symvers := sed 's/\.ko$$/\.o/' /home/nics/Desktop/Operativos/Proyecto2-Operativos/Driver/modules.order | scripts/mod/modpost -m -a  -o /home/nics/Desktop/Operativos/Proyecto2-Operativos/Driver/Module.symvers -e -i Module.symvers   -T -
+savedcmd_/home/emilio/Documents/Proyecto2-Operativos/Driver/Module.symvers :=  scripts/mod/modpost -M -m -a      -o /home/emilio/Documents/Proyecto2-Operativos/Driver/Module.symvers -T /home/emilio/Documents/Proyecto2-Operativos/Driver/modules.order -i Module.symvers -e 

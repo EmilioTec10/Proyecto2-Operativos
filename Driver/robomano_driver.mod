@@ -1,2 +1,1 @@
-/home/nics/Desktop/Operativos/Proyecto2-Operativos/Driver/robomano_driver.o
-
+/home/emilio/Documents/Proyecto2-Operativos/Driver/robomano_driver.o

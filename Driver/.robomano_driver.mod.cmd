@@ -1,1 +1,1 @@
-cmd_/home/nics/Desktop/Operativos/Proyecto2-Operativos/Driver/robomano_driver.mod := { echo  /home/nics/Desktop/Operativos/Proyecto2-Operativos/Driver/robomano_driver.o;  echo; } > /home/nics/Desktop/Operativos/Proyecto2-Operativos/Driver/robomano_driver.mod
+savedcmd_/home/emilio/Documents/Proyecto2-Operativos/Driver/robomano_driver.mod := printf '%s\n'   robomano_driver.o | awk '!x[$$0]++ { print("/home/emilio/Documents/Proyecto2-Operativos/Driver/"$$0) }' > /home/emilio/Documents/Proyecto2-Operativos/Driver/robomano_driver.mod

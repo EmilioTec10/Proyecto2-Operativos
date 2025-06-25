@@ -6,18 +6,20 @@ Servo servo3;  // Servo en pin 10
 
 int angulo_servo1 = 57; // Angulo inicial para el servo 1
 int angulo_servo2 = 130; // Angulo inicial para el servo 2
-int angulo_servo3 = 0; // Angulo inicial para el servo 3
+int angulo_servo3 = 9; // Angulo inicial para el servo 3
 
 int contadorMovimientos = 0;  // Contador global para los movimientos
 
 // Funcion para poner el dedo en la posicion inicial (tecla 'G')
 void pos_inicial(){
-  int angulo_servo1 = 57; // Angulo inicial para el servo 1
-  int angulo_servo2 = 130; // Angulo inicial para el servo 2
-  int angulo_servo3 = 0; // Angulo inicial para el servo 3
+  angulo_servo1 = 57; // Angulo inicial para el servo 1
+  angulo_servo2 = 130; // Angulo inicial para el servo 2
+  angulo_servo3 = 9; // Angulo inicial para el servo 3
+  contadorMovimientos = 0;
   servo1.write(angulo_servo1);
   servo2.write(angulo_servo2);
   servo3.write(angulo_servo3);
+  
   
   }
 
@@ -49,6 +51,7 @@ void subir_dedo(int angle) {
     servo2.write(currentAngle);  // Mover el servo al nuevo ángulo
     delay(15);  // Esperar un pequeño intervalo antes de mover el servo nuevamente
   }
+  delay(30);
 }
 
 // Funcion para mover el dedo a la derecha 
@@ -125,7 +128,8 @@ void mover_dedo_izquierda(int angle) {
       } 
        else if (contadorMovimientos == 3 || contadorMovimientos == 4){
         angulo_servo2 += 8;  // Sumar 2 unidades al ángulo de servo2
-        servo2.write(angulo_servo2);  // Mover el servo2
+        delay(40)
+;        servo2.write(angulo_servo2);  // Mover el servo2
         Serial.print("Desfase corregido, servo2 a ángulo: ");
         Serial.println(angulo_servo2);
         angulo_servo3 -= 4;  // Sumar 2 unidades al ángulo de servo3
@@ -222,6 +226,8 @@ void loop() {
       angulo_servo2 = angulo_servo2 + 8;  // Ajustamos el ángulo de servo2
       Serial.print("Mover hacia arriba -> nuevo ángulo: ");
       Serial.println(angulo_servo2);
+      pos_inicial();
+      delay(100);
     }
     // Si se recibe 'Q' (mover el dedo hacia arriba en servo3)
     else if (input == 'Q') {
@@ -236,6 +242,7 @@ void loop() {
       angulo_servo3 = angulo_servo3 - 9;  // Ajustamos el ángulo de servo3
       Serial.print("Mover el dedo hacia arriba (servo3) -> nuevo ángulo: ");
       Serial.println(angulo_servo3);
+      
     }
 
   }

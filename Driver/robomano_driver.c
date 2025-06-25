@@ -85,7 +85,7 @@ static int __init robomano_init(void)
     }
 
     /* 2. crear clase y /dev/robomano */
-    robomano_class = class_create(THIS_MODULE, CLASS_NAME);
+    robomano_class = class_create(CLASS_NAME);
 	
     if (IS_ERR(robomano_class)) {
         unregister_chrdev(major, DEVICE_NAME);
