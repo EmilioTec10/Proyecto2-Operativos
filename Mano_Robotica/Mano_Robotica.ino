@@ -83,7 +83,7 @@ void mover_dedo_derecha(int angle) {
         servo2.write(angulo_servo2);  // Mover el servo2
         Serial.print("Desfase corregido, servo2 a ángulo: ");
         Serial.println(angulo_servo2);
-        angulo_servo3 += 4;  // Sumar 2 unidades al ángulo de servo3
+        angulo_servo3 += 6;  // Sumar 2 unidades al ángulo de servo3
         servo3.write(angulo_servo3);  // Mover el servo3
         Serial.print("Desfase corregido, servo3 a ángulo: ");
         Serial.println(angulo_servo3);
@@ -204,7 +204,7 @@ void loop() {
       // Si se recibe 'R' (mover a la derecha)
       if (input == 'R') {
       mover_dedo_derecha(angulo_servo1);  // Usamos la función para mover a la derecha
-      angulo_servo1 = angulo_servo1 - 10;  // Actualizamos el ángulo
+      angulo_servo1 = angulo_servo1 - 8;  // Actualizamos el ángulo
       
     } 
     // Si se recibe 'L' (mover a la izquierda)
@@ -228,6 +228,7 @@ void loop() {
       Serial.println(angulo_servo2);
       pos_inicial();
       delay(100);
+      
     }
     // Si se recibe 'Q' (mover el dedo hacia arriba en servo3)
     else if (input == 'Q') {
